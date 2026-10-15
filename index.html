@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ⚠️ Meta Pixel Code यहाँ Paste करो (अपने Pixel ID के साथ) -->
+<!-- End Meta Pixel Code -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algoexpert_ak · Stock Market</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif;}
+
+html,body{min-height:100vh;overflow-x:hidden;}
+
+body{
+  background:#050810;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:14px 10px 30px;
+  color:#fff;
+  position:relative;
+}
+
+/* ===== ANIMATED BACKGROUND ===== */
+body::before{
+  content:'';
+  position:fixed;
+  inset:-50%;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(16,185,129,0.20) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(255,215,0,0.16) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(59,130,246,0.10) 0%, transparent 50%);
+  animation:bgRotate 30s linear infinite;
+  z-index:0;
+  pointer-events:none;
+}
+
+@keyframes bgRotate{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+/* Grid Overlay */
+.grid-bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(16,185,129,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16,185,129,0.05) 1px, transparent 1px);
+  background-size:50px 50px;
+  mask-image:radial-gradient(ellipse at center, #000 30%, transparent 80%);
+  -webkit-mask-image:radial-gradient(ellipse at center, #000 30%, transparent 80%);
+  pointer-events:none;
+}
+
+/* Floating Orbs */
+.orb{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(100px);
+  opacity:0.35;
+  pointer-events:none;
+  z-index:0;
+  animation:orbFloat 18s ease-in-out infinite;
+}
+
+.orb-1{width:300px;height:300px;background:#10b981;top:-100px;left:-100px;animation-delay:0s;}
+.orb-2{width:260px;height:260px;background:#fbbf24;bottom:-80px;right:-80px;animation-delay:-6s;}
+.orb-3{width:220px;height:220px;background:#3b82f6;top:40%;right:-80px;animation-delay:-12s;}
+
+@keyframes orbFloat{
+  0%,100%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(30px,-40px) scale(1.1);}
+  66%{transform:translate(-30px,30px) scale(0.95);}
+}
+
+/* ===== LIVE TICKER ===== */
+.ticker{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:100;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(16,185,129,0.2);
+  padding:8px 0;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.ticker-track{
+  display:inline-block;
+  animation:scrollTicker 35s linear infinite;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  font-weight:700;
+  color:#cbd5e1;
+  letter-spacing:0.3px;
+}
+
+.ticker-track span{margin:0 20px;}
+.ticker-track .up{color:#10b981;}
+.ticker-track .down{color:#ef4444;}
+
+@keyframes scrollTicker{
+  0%{transform:translateX(0);}
+  100%{transform:translateX(-50%);}
+}
+
+/* ===== MAIN CARD ===== */
+.card-wrap{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:440px;
+  margin-top:34px;
+  border-radius:30px;
+  padding:2px;
+  background:linear-gradient(135deg, rgba(16,185,129,0.7), rgba(255,215,0,0.7), rgba(16,185,129,0.7));
+  background-size:300% 300%;
+  animation:borderFlow 6s ease infinite;
+  box-shadow:0 30px 80px rgba(0,0,0,0.8), 0 0 80px rgba(16,185,129,0.2);
+}
+
+@keyframes borderFlow{
+  0%,100%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+}
+
+.card{
+  background:linear-gradient(180deg, #0f172a 0%, #0a1020 100%);
+  border-radius:28px;
+  padding:30px 22px 26px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.card::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:20%;
+  right:20%;
+  height:2px;
+  background:linear-gradient(90deg, transparent, #FFD700, transparent);
+}
+
+/* ===== BADGES ===== */
+.badges{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 12px;
+  border-radius:30px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.badge-verified{
+  background:rgba(16,185,129,0.12);
+  border:1px solid rgba(16,185,129,0.35);
+  color:#4ade80;
+}
+
+.badge-live{
+  background:rgba(251,191,36,0.12);
+  border:1px solid rgba(251,191,36,0.35);
+  color:#fbbf24;
+}
+
+.badge-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 8px currentColor;
+  animation:blink 1.5s infinite;
+}
+
+@keyframes blink{
+  0%,100%{opacity:1;}
+  50%{opacity:0.3;}
+}
+
+/* ===== AVATAR ===== */
+.avatar-wrap{
+  position:relative;
+  width:125px;
+  height:125px;
+  margin:0 auto 18px;
+}
+
+.avatar-ring{
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  background:conic-gradient(from 0deg, #10b981, #FFD700, #10b981, #FFD700, #10b981);
+  animation:spin 6s linear infinite;
+  z-index:0;
+}
+
+.avatar-ring::after{
+  content:'';
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  background:conic-gradient(from 0deg, #10b981, #FFD700, #10b981, #FFD700, #10b981);
+  filter:blur(18px);
+  opacity:0.6;
+  z-index:-1;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+.avatar{
+  position:relative;
+  z-index:1;
+  width:125px;
+  height:125px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid #0f172a;
+  background:#1a1f2e;
+  display:block;
+}
+
+.online-dot{
+  position:absolute;
+  bottom:6px;
+  right:6px;
+  width:24px;
+  height:24px;
+  background:#22c55e;
+  border:4px solid #0f172a;
+  border-radius:50%;
+  z-index:2;
+  box-shadow:0 0 20px rgba(34,197,94,0.8);
+}
+
+.online-dot::after{
+  content:'';
+  position:absolute;
+  inset:-4px;
+  border-radius:50%;
+  border:2px solid #22c55e;
+  animation:ringPulse 1.8s ease infinite;
+}
+
+@keyframes ringPulse{
+  0%{transform:scale(1);opacity:1;}
+  100%{transform:scale(1.9);opacity:0;}
+}
+
+/* ===== TITLE ===== */
+h1{
+  font-size:21px;
+  font-weight:800;
+  line-height:1.25;
+  letter-spacing:-0.4px;
+  margin-bottom:8px;
+  background:linear-gradient(135deg, #ffffff 0%, #FFD700 50%, #facc15 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.sub-title{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:10px;
+  font-weight:700;
+  color:#94a3b8;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:14px;
+  padding:5px 14px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:30px;
+}
+
+.sub-title::before,
+.sub-title::after{
+  content:'';
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:#FFD700;
+}
+
+.desc{
+  font-size:12.5px;
+  color:#cbd5e1;
+  line-height:1.6;
+  margin-bottom:20px;
+  padding:0 6px;
+}
+
+.desc strong{
+  color:#FFD700;
+  font-weight:700;
+}
+
+/* ===== CTA BUTTON ===== */
+.btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  padding:18px 20px;
+  background:linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+  background-size:200% 200%;
+  color:#ffffff;
+  font-weight:800;
+  font-size:15px;
+  text-decoration:none;
+  border-radius:14px;
+  letter-spacing:0.3px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s ease;
+  box-shadow:0 14px 35px rgba(34,197,94,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  animation:gradientMove 4s ease infinite;
+}
+
+@keyframes gradientMove{
+  0%,100%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+}
+
+.btn::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition:left 0.7s ease;
+}
+
+.btn:hover::before{left:100%;}
+
+.btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 20px 50px rgba(34,197,94,0.55);
+}
+
+.btn:active{transform:translateY(0) scale(0.98);}
+
+.btn svg{width:20px;height:20px;flex-shrink:0;}
+
+/* ===== STATS ===== */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:22px;
+}
+
+.stat{
+  background:rgba(15,23,42,0.9);
+  padding:12px 4px;
+  text-align:center;
+  transition:background 0.3s;
+}
+
+.stat:hover{background:rgba(16,185,129,0.08);}
+
+.stat-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  font-weight:700;
+  color:#FFD700;
+  line-height:1;
+  margin-bottom:4px;
+  display:block;
+}
+
+.stat-lbl{
+  font-size:7.5px;
+  color:#94a3b8;
+  font-weight:700;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title{
+  font-size:9.5px;
+  color:#FFD700;
+  font-weight:800;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin:22px 0 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.section-title::before,
+.section-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,215,0,0.3), transparent);
+}
+
+/* ===== FEATURES ===== */
+.features{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.feature{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:13px 10px;
+  text-align:center;
+  transition:all 0.25s ease;
+}
+
+.feature:hover{
+  border-color:rgba(255,215,0,0.3);
+  background:rgba(255,215,0,0.05);
+  transform:translateY(-3px);
+}
+
+.feature-icon{
+  font-size:20px;
+  margin-bottom:6px;
+  display:block;
+}
+
+.feature-title{
+  font-size:11px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:3px;
+  line-height:1.3;
+}
+
+.feature-desc{
+  font-size:9px;
+  color:#94a3b8;
+  font-weight:500;
+  line-height:1.3;
+}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.testimonial{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-left:3px solid #10b981;
+  border-radius:0 12px 12px 0;
+  padding:12px 14px;
+  text-align:left;
+  transition:all 0.3s ease;
+}
+
+.testimonial:hover{
+  background:rgba(16,185,129,0.05);
+  border-left-color:#FFD700;
+}
+
+.testi-stars{
+  color:#fbbf24;
+  font-size:10px;
+  letter-spacing:2px;
+  margin-bottom:5px;
+}
+
+.testi-text{
+  font-size:11px;
+  color:#cbd5e1;
+  line-height:1.5;
+  margin-bottom:6px;
+  font-style:italic;
+}
+
+.testi-author{
+  font-size:9.5px;
+  color:#10b981;
+  font-weight:700;
+  letter-spacing:0.3px;
+}
+
+/* ===== FAQ ===== */
+.faq-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.faq-item{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  overflow:hidden;
+  transition:all 0.3s ease;
+}
+
+.faq-item[open]{
+  border-color:rgba(16,185,129,0.4);
+  background:rgba(16,185,129,0.05);
+}
+
+.faq-q{
+  padding:12px 14px;
+  font-size:11.5px;
+  font-weight:700;
+  color:#fff;
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  transition:color 0.25s;
+}
+
+.faq-q::-webkit-details-marker{display:none;}
+
+.faq-q::after{
+  content:'+';
+  font-size:16px;
+  font-weight:700;
+  color:#FFD700;
+  transition:transform 0.3s ease;
+  flex-shrink:0;
+}
+
+.faq-item[open] .faq-q::after{
+  transform:rotate(45deg);
+}
+
+.faq-a{
+  padding:0 14px 12px;
+  font-size:10.5px;
+  color:#94a3b8;
+  line-height:1.5;
+  text-align:left;
+}
+
+/* ===== TRUST BOX ===== */
+.trust{
+  background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02));
+  border:1px solid rgba(16,185,129,0.2);
+  border-radius:14px;
+  padding:12px 14px;
+  margin:20px 0 0;
+  text-align:left;
+}
+
+.trust-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:11.5px;
+  color:#e2e8f0;
+  font-weight:500;
+  padding:5px 0;
+}
+
+.trust-row + .trust-row{
+  border-top:1px solid rgba(16,185,129,0.1);
+  margin-top:5px;
+  padding-top:10px;
+}
+
+.trust-check{
+  width:18px;
+  height:18px;
+  background:rgba(16,185,129,0.15);
+  border:1px solid rgba(16,185,129,0.4);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#4ade80;
+  font-size:10px;
+  font-weight:900;
+  flex-shrink:0;
+}
+
+/* ===== TIMER ===== */
+.timer{
+  margin-top:18px;
+  padding:11px;
+  background:linear-gradient(90deg, transparent, rgba(250,204,21,0.08), transparent);
+  border-top:1px solid rgba(250,204,21,0.15);
+  border-bottom:1px solid rgba(250,204,21,0.15);
+  font-size:11.5px;
+  color:#facc15;
+  font-weight:700;
+  letter-spacing:0.5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.timer .pulse-dot{
+  width:7px;
+  height:7px;
+  background:#facc15;
+  border-radius:50%;
+  animation:blink 1.2s infinite;
+  box-shadow:0 0 10px #facc15;
+}
+
+/* ===== PROOF ===== */
+.proof{
+  margin-top:11px;
+  font-size:11.5px;
+  color:#94a3b8;
+  font-weight:500;
+}
+
+/* ===== RISK ===== */
+.risk{
+  margin-top:11px;
+  font-size:10px;
+  color:#64748b;
+  line-height:1.5;
+  padding:0 6px;
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  font-size:11px;
+  color:#64748b;
+}
+
+.footer a{
+  color:#FFD700;
+  text-decoration:none;
+  font-weight:700;
+  padding:5px 12px;
+  border:1px solid rgba(255,215,0,0.2);
+  border-radius:30px;
+  background:rgba(255,215,0,0.04);
+  transition:all 0.25s;
+  display:inline-block;
+  margin-top:6px;
+}
+
+.footer a:hover{
+  background:rgba(255,215,0,0.1);
+  border-color:rgba(255,215,0,0.4);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width:400px){
+  .card{padding:26px 18px 22px;}
+  h1{font-size:19px;}
+  .avatar-wrap, .avatar{width:108px;height:108px;}
+  .btn{font-size:13.5px;padding:16px;}
+  .feature-title{font-size:10.5px;}
+  .stat-num{font-size:12.5px;}
+  .stat-lbl{font-size:7px;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- Grid Background -->
+<div class="grid-bg"></div>
+
+<!-- Floating Orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Live Ticker -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span>NIFTY 50 <span class="up">▲ 22,456.80 +0.92%</span></span>
+    <span>BANKNIFTY <span class="up">▲ 48,215.50 +1.24%</span></span>
+    <span>SENSEX <span class="up">▲ 73,842.10 +0.88%</span></span>
+    <span>FINNIFTY <span class="down">▼ 21,890.20 -0.15%</span></span>
+    <span>MIDCPNIFTY <span class="up">▲ 11,245.60 +0.67%</span></span>
+    <span>NIFTY 50 <span class="up">▲ 22,456.80 +0.92%</span></span>
+    <span>BANKNIFTY <span class="up">▲ 48,215.50 +1.24%</span></span>
+    <span>SENSEX <span class="up">▲ 73,842.10 +0.88%</span></span>
+    <span>FINNIFTY <span class="down">▼ 21,890.20 -0.15%</span></span>
+    <span>MIDCPNIFTY <span class="up">▲ 11,245.60 +0.67%</span></span>
+  </div>
+</div>
+
+<!-- Card -->
+<div class="card-wrap">
+<div class="card">
+
+  <!-- Badges -->
+  <div class="badges">
+    <span class="badge badge-verified"><span class="badge-dot"></span> Verified</span>
+    <span class="badge badge-live"><span class="badge-dot"></span> Live Now</span>
+  </div>
+
+  <!-- Avatar -->
+  <div class="avatar-wrap">
+    <div class="avatar-ring"></div>
+    <img class="avatar"
+      src="https://i.ibb.co/SXvrg19r/o4-Beuhem-VMf-Vu9kl3-BEAVSYo2mu-Y8qzavxom6-Qqwr-SHg-L3du-QNAfkj-YVyb6-De-Ab-Mz-gb-NE3-Ysg-NSD4-Rt-Ey-MWDLa.jpg"
+      alt="Algoexpert_ak">
+    <span class="online-dot"></span>
+  </div>
+
+  <!-- Title -->
+  <h1>Algoexpert_ak</h1>
+  <div class="sub-title">Nifty · BankNifty</div>
+
+  <p class="desc">
+    Daily <strong>Intraday Trading Signals</strong> & Market Analysis — Trusted by thousands of traders
+  </p>
+
+  <!-- Top CTA -->
+  <a href="https://t.me/+LE1kh3wSxKxiOGZl" class="btn" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+    </svg>
+    Join Free Telegram Channel
+  </a>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num">5K+</span>
+      <span class="stat-lbl">Traders</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">5-7</span>
+      <span class="stat-lbl">Daily</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">24/7</span>
+      <span class="stat-lbl">Live</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">Free</span>
+      <span class="stat-lbl">Access</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section-title">What You Get</div>
+  <div class="features">
+
+    <div class="feature">
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Intraday Trades</div>
+      <div class="feature-desc">High probability</div>
+    </div>
+
+    <div class="feature">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-title">Exact Levels</div>
+      <div class="feature-desc">Entry · SL · Target</div>
+    </div>
+
+    <div class="feature">
+      <span class="feature-icon">📚</span>
+      <div class="feature-title">Beginner Help</div>
+      <div class="feature-desc">Friendly guidance</div>
+    </div>
+
+    <div class="feature">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Live Updates</div>
+      <div class="feature-desc">Real-time market</div>
+    </div>
+
+  </div>
+
+  <!-- Trust Box -->
+  <div class="trust">
+    <div class="trust-row">
+      <span class="trust-check">✓</span>
+      <span>Trusted by 5,000+ active traders</span>
+    </div>
+    <div class="trust-row">
+      <span class="trust-check">✓</span>
+      <span>Daily consistent market analysis</span>
+    </div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="section-title">Trader Reviews</div>
+  <div class="testimonials">
+
+    <div class="testimonial">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Great community with daily updates. Very helpful for beginners."</div>
+      <div class="testi-author">— Rahul K. · Mumbai</div>
+    </div>
+
+    <div class="testimonial">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Clear analysis every morning. Best trading community I've joined."</div>
+      <div class="testi-author">— Priya S. · Chennai</div>
+    </div>
+
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-title">Common Questions</div>
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary class="faq-q">Is the channel really free?</summary>
+      <div class="faq-a">Yes, 100% free. No fees, no subscription, no hidden charges.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">Do I need trading experience?</summary>
+      <div class="faq-a">No. Content is beginner-friendly and educational.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">What markets are covered?</summary>
+      <div class="faq-a">Nifty, BankNifty, Options, and general market analysis.</div>
+    </details>
+
+  </div>
+
+  <!-- Bottom CTA -->
+  <a href="https://t.me/+LE1kh3wSxKxiOGZl" class="btn" target="_blank" rel="noopener" style="margin-top:18px;">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+    </svg>
+    Join Free Telegram Channel
+  </a>
+
+  <!-- Timer -->
+  <div class="timer">
+    <span class="pulse-dot"></span>
+    Free Access Closing Soon
+  </div>
+
+  <div class="proof">📈 Limited Seats · Active Community</div>
+
+  <p class="risk">⚠ Market investments are subject to risk. Educational content only.</p>
+
+  <!-- Footer -->
+  <div class="footer">
+    Powered by
+    <br>
+    <a href="https://t.me/+CKzXLc93ze44MTdl" target="_blank" rel="noopener">
+      @amitgrowthagency
+    </a>
+  </div>
+
+</div>
+</div>
+
+</body>
+</html>
